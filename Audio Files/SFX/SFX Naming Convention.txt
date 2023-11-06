@@ -1,0 +1,7 @@
+please can you name the files in this way:
+
+			SFX_sfxname_number
+
+So for example:
+
+			SFX_GunNoise_1
