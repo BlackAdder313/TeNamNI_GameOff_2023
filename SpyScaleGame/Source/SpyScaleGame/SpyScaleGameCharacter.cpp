@@ -8,8 +8,10 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
-#include "InputActionValue.h"
 #include "Engine/LocalPlayer.h"
+#include "InputActionValue.h"
+#include "Logging/LogMacros.h"
+#include "PhysicsEngine/PhysicsHandleComponent.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -39,6 +41,10 @@ ASpyScaleGameCharacter::ASpyScaleGameCharacter()
 	//Mesh1P->SetRelativeRotation(FRotator(0.9f, -19.19f, 5.2f));
 	Mesh1P->SetRelativeLocation(FVector(-30.f, 0.f, -150.f));
 
+	// Set up physics handler
+	m_handleComp = CreateDefaultSubobject<UPhysicsHandleComponent>(TEXT("PhysicsHandler"));
+	m_isHoldingObject = false;
+	m_currentHoldingDistance = 0.f;
 }
 
 void ASpyScaleGameCharacter::BeginPlay()
@@ -73,6 +79,11 @@ void ASpyScaleGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 
 		// Looking
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::Look);
+
+		// Object manipulation
+		EnhancedInputComponent->BindAction(HoldObjectAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::HoldObject);
+		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::MoveHeldObject);
+		EnhancedInputComponent->BindAction(ScaleHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ScaleHeldObject);
 	}
 	else
 	{
@@ -107,6 +118,59 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASpyScaleGameCharacter::HoldObject(const FInputActionValue& Value)
+{
+	if (m_isHoldingObject)
+	{
+		m_handleComp->ReleaseComponent();
+		m_isHoldingObject = false;
+		return;
+	}
+
+	FHitResult hitResult;
+	FCollisionQueryParams traceParams(TEXT("SpyPlayer_Hold_Object"), true);
+	FVector rayStart = FirstPersonCameraComponent->GetComponentLocation();
+	FVector rayEnd = rayStart + FirstPersonCameraComponent->GetComponentRotation().Vector() * MaxHoldingDistance;
+	bool bSuccess = GetWorld()->LineTraceSingleByChannel(hitResult, rayStart, rayEnd, ECC_Visibility, traceParams);
+	if (bSuccess)
+	{
+		m_heldObjectComponent = hitResult.GetComponent();
+		m_handleComp->GrabComponentAtLocationWithRotation(m_heldObjectComponent.Get(),
+														  FName(),
+														  m_heldObjectComponent.Get()->GetComponentLocation(),
+														  FRotator());
+		m_currentHoldingDistance = FMath::Max(MinHoldingDistance, hitResult.Distance);
+		m_isHoldingObject = true;
+	}
+}
+
+void ASpyScaleGameCharacter::MoveHeldObject(const FInputActionValue& Value)
+{
+	if (m_isHoldingObject)
+	{
+		float moveDirection = Value.Get<FVector>().X;
+		m_currentHoldingDistance = FMath::Clamp(m_currentHoldingDistance + moveDirection * MovingHoldingElementSpeed,
+												MinHoldingDistance,
+												MaxHoldingDistance);
+	}
+}
+
+void ASpyScaleGameCharacter::ScaleHeldObject(const FInputActionValue& Value)
+{
+	if (m_isHoldingObject && m_heldObjectComponent.IsValid())
+	{
+		float scaleDirection = Value.Get<FVector>().X;
+		auto heldObjectComponent = m_heldObjectComponent.Get();
+		auto currentScale = heldObjectComponent->GetComponentScale();
+		
+		FVector newScale = ClampVector(currentScale + scaleDirection * ScalingHoldingElementSpeed,
+									   MinObjectScale,
+									   MaxObjectScale);
+
+		m_heldObjectComponent.Get()->SetWorldScale3D(newScale);
+	}
+}
+
 void ASpyScaleGameCharacter::SetHasRifle(bool bNewHasRifle)
 {
 	bHasRifle = bNewHasRifle;
@@ -115,4 +179,15 @@ void ASpyScaleGameCharacter::SetHasRifle(bool bNewHasRifle)
 bool ASpyScaleGameCharacter::GetHasRifle()
 {
 	return bHasRifle;
+}
+
+void ASpyScaleGameCharacter::Tick(float DeltaTime)
+{
+	if (m_isHoldingObject)
+	{
+		FVector rayStart = FirstPersonCameraComponent->GetComponentLocation();
+		FVector rayEnd = rayStart
+						 + FirstPersonCameraComponent->GetComponentRotation().Vector() * m_currentHoldingDistance;
+		m_handleComp->SetTargetLocation(rayEnd);
+	}
 }
