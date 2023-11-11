@@ -3,9 +3,15 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "BlueprintClasses/MovableObject.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "SpyScaleGameCharacter.generated.h"
+
+namespace ObjectTypeGameplayTags
+{
+	extern const FName MoveableObjectTypeGameplayTag;
+}
 
 class UInputComponent;
 class USkeletalMeshComponent;
@@ -42,7 +48,7 @@ public:
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
 protected:
-	virtual void BeginPlay();
+	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
 	
@@ -60,6 +66,9 @@ protected:
 
 	/** Called for scaling an object */
 	void ScaleHeldObject(const FInputActionValue& Value);
+
+	void UpdateMoveObjectAttributes(const FVector scaleMin, const FVector scaleMax);
+	void ResetMoveObjectAttributes();
 
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -106,16 +115,16 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FVector ScalingHoldingElementSpeed = FVector(.05f);
 
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	FVector MaxObjectScale = FVector(3.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	FVector MinObjectScale = FVector(.5f);
+	FVector MaxObjectScale;
+	FVector MinObjectScale;
 
 	/* Physics Handle */
 	class UPhysicsHandleComponent* m_handleComp;
 	
-	TWeakObjectPtr<UPrimitiveComponent> m_heldObjectComponent;
+	TWeakObjectPtr<UPrimitiveComponent> m_heldObject;
+	TWeakObjectPtr<UPrimitiveComponent> m_heldObjectCandidate;
+	TWeakObjectPtr<AMovableObject> m_movableActor;
+	
 	bool m_isHoldingObject = false;
 	float m_currentHoldingDistance = 0.f;
 };
