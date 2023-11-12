@@ -121,8 +121,7 @@ private:
 	/* Physics Handle */
 	class UPhysicsHandleComponent* m_handleComp;
 	
-	TWeakObjectPtr<UPrimitiveComponent> m_heldObject;
-	TWeakObjectPtr<UPrimitiveComponent> m_heldObjectCandidate;
+	TWeakObjectPtr<UPrimitiveComponent> m_movableObject;
 	TWeakObjectPtr<AMovableObject> m_movableActor;
 	
 	bool m_isHoldingObject = false;
