@@ -67,6 +67,7 @@ void ASpyScaleGameCharacter::BeginPlay()
 
 	m_movableObject.Reset();
 	m_isHoldingObject = false;
+	m_isWatchActivated = false;
 	m_currentHoldingDistance = 0.f;
 
 	ResetMoveObjectAttributes();
@@ -90,7 +91,7 @@ void ASpyScaleGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::Look);
 
 		// Object manipulation
-		EnhancedInputComponent->BindAction(HoldObjectAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::HoldObject);
+		EnhancedInputComponent->BindAction(ToggleWatchAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::ToggleWatch);
 		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::MoveHeldObject);
 		EnhancedInputComponent->BindAction(ScaleHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ScaleHeldObject);
 	}
@@ -139,8 +140,10 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
-void ASpyScaleGameCharacter::HoldObject(const FInputActionValue& Value)
+void ASpyScaleGameCharacter::ToggleWatch(const FInputActionValue& Value)
 {
+	m_isWatchActivated = !m_isWatchActivated;
+	
 	if (m_isHoldingObject)
 	{
 		m_handleComp->ReleaseComponent();
@@ -155,22 +158,25 @@ void ASpyScaleGameCharacter::HoldObject(const FInputActionValue& Value)
 		// TODO: This should also be called if we worked with events
 		//OnMoveObjectAttributesChanged.RemoveAll(this);
 	}
+}
 
+void ASpyScaleGameCharacter::HoldObject()
+{
 	if (m_movableObject.IsValid())
 	{
 		auto movableObject = m_movableObject.Get();
 		m_handleComp->GrabComponentAtLocationWithRotation(movableObject,
-														  FName(),
-														  m_movableObject->GetComponentLocation(),
-														  FRotator());
-		
+			FName(),
+			m_movableObject->GetComponentLocation(),
+			FRotator());
+
 		m_isHoldingObject = true;
 
 		if (m_movableActor.IsValid())
 		{
 			auto movableActor = m_movableActor.Get();
 			movableActor->OnInteract();
-		}		
+		}
 
 		// TODO: Evaluate if it'd be helpful to register to an event like that from the movable / interactable object
 		// or keeping it like that - coupled with direct functions - is good enough
@@ -217,18 +223,22 @@ bool ASpyScaleGameCharacter::GetHasRifle()
 
 void ASpyScaleGameCharacter::Tick(float DeltaTime)
 {
+	Tick_BP(DeltaTime);
+
 	FVector rayStart = FirstPersonCameraComponent->GetComponentLocation();
 	auto rayEnd = [&rayStart, direction = FirstPersonCameraComponent->GetComponentRotation().Vector()](const float distanceFactor)
 				  {
 				      return rayStart + direction * distanceFactor;
 				  };
 	
+	// Update position of held object
 	if (m_isHoldingObject)
 	{
 		m_handleComp->SetTargetLocation(rayEnd(m_currentHoldingDistance));
 		return;
 	}
 
+	// Try raycast for movable
 	FHitResult hitResult;
 	FCollisionQueryParams traceParams(TEXT("SpyPlayer_Hold_Object"), true);
 	bool bSuccess = GetWorld()->LineTraceSingleByChannel(hitResult, rayStart, rayEnd(MaxHoldingDistance), ECC_Visibility, traceParams);
@@ -239,19 +249,26 @@ void ASpyScaleGameCharacter::Tick(float DeltaTime)
 		return;
 	}
 	
-	if (!m_movableObject.IsValid())
+	// Check if hit object is a MovableObject
+	auto movableActor = Cast<AMovableObject>(hitResult.GetActor());
+	if (!movableActor)
 	{
-		m_movableActor = MakeWeakObjectPtr(Cast<AMovableObject>(hitResult.GetActor()));
-		if (m_movableActor.IsValid())
-		{
-			m_movableObject = hitResult.GetComponent();
-			m_currentHoldingDistance = FMath::Max(MinHoldingDistance, hitResult.Distance);
+		return;
+	}
+	
+	// If there's no existing cached movableObject or we're pointing to a different one,
+	// update cache
+	if (!m_movableActor.IsValid() || m_movableActor.Get() != movableActor)
+	{
+		m_movableActor = MakeWeakObjectPtr(movableActor);
+		m_movableObject = hitResult.GetComponent();
+		m_currentHoldingDistance = FMath::Max(MinHoldingDistance, hitResult.Distance);
 
-			auto movableActor = m_movableActor.Get();
-			UpdateMoveObjectAttributes(movableActor->MinObjectScale, movableActor->MaxObjectScale);
-			movableActor->OnScan();
-		}
+		UpdateMoveObjectAttributes(movableActor->MinObjectScale, movableActor->MaxObjectScale);
 	}
 
-	
+	if(m_isWatchActivated && !m_isHoldingObject)
+	{
+		HoldObject();
+	}
 }

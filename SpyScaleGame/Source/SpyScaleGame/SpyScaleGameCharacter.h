@@ -51,6 +51,10 @@ protected:
 	virtual void BeginPlay() override;
 
 	virtual void Tick(float DeltaTime) override;
+
+	// Called when player is trying to interact with this object
+	UFUNCTION(BlueprintImplementableEvent, Category = "Actor BP Extensions")
+	void Tick_BP(float DeltaTime);
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -58,8 +62,8 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
-	/** Called for holding an object */
-	void HoldObject(const FInputActionValue& Value);
+	/** Called for pulling / pushing an object */
+	void ToggleWatch(const FInputActionValue& Value);
 
 	/** Called for pulling / pushing an object */
 	void MoveHeldObject(const FInputActionValue& Value);
@@ -95,7 +99,7 @@ private:
 	UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* HoldObjectAction;
+	UInputAction* ToggleWatchAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveHeldObjectAction;
@@ -115,6 +119,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	FVector ScalingHoldingElementSpeed = FVector(.05f);
 
+	/** Called for holding an object */
+	void HoldObject();
+
 	FVector MaxObjectScale;
 	FVector MinObjectScale;
 
@@ -125,5 +132,6 @@ private:
 	TWeakObjectPtr<AMovableObject> m_movableActor;
 	
 	bool m_isHoldingObject = false;
+	bool m_isWatchActivated = false;
 	float m_currentHoldingDistance = 0.f;
 };

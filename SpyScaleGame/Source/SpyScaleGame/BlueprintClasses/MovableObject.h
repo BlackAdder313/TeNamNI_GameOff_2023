@@ -26,17 +26,7 @@ public:
 	AMovableObject();
 
 	// AACtor overrides
-	virtual void Tick(float DeltaSeconds) override;
 	virtual void BeginPlay() override;
-	virtual void EndPlay(const EEndPlayReason::Type EndPlayReason) override;
-	virtual void BeginDestroy() override;
-
-	// Called when player is going over this object with gun
-	UFUNCTION(BlueprintImplementableEvent, Category = "Object Type|Interface functions")
-	void OnScan_BP();
-	
-	// Calls both C++ and Blueprint implentations
-	void OnScan();
 
 	// Called when player is trying to interact with this object
 	UFUNCTION(BlueprintImplementableEvent, Category = "Object Type|Interface functions")
