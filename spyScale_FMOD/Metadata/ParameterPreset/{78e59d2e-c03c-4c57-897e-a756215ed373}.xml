@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="ParameterPreset" id="{78e59d2e-c03c-4c57-897e-a756215ed373}">
+		<property name="name">
+			<value>Puzzle Advance</value>
+		</property>
+		<relationship name="folder">
+			<destination>{ffd67a5e-f546-4130-aa08-60742e3e882a}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{e0086295-667e-4641-bc3a-268cc9de5621}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{e0086295-667e-4641-bc3a-268cc9de5621}">
+		<property name="parameterType">
+			<value>1</value>
+		</property>
+		<property name="maximum">
+			<value>2</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

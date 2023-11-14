@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{b35b41bf-8863-4456-93ff-154c6d08ee42}">
+		<property name="assetPath">
+			<value>Level One Snares.wav</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>41.652895833333332</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2741e13b-fc55-41d9-8835-134a2244a42f}</destination>
+		</relationship>
+	</object>
+</objects>
