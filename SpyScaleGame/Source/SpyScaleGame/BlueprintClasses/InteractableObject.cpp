@@ -70,5 +70,6 @@ void AInteractableObject::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 {
 	if (OtherActor && (OtherActor != this)) {
 		UE_LOG(LogTemp, Warning, TEXT("OnOverlapEnd"));
+
 	}
 }
