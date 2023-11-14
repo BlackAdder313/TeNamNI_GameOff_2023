@@ -2,6 +2,8 @@
 
 #include "MovableObject.h"
 
+// TODO: Ensure that scaling is also affecting the mass
+
 void AMovableObject::BeginPlay()
 {
 	if (UPrimitiveComponent* rootPrimitiveComp = Cast<UPrimitiveComponent>(GetRootComponent()))

@@ -7,7 +7,7 @@
 #include "GameplayTagContainer.h"
 #include "MovableObject.generated.h"
 
-// TODO: Would use this if we went through the path of having the character register here to fetch
+// Kostas - self note: Would use this if we went through the path of having the character register here to fetch
 // attributes directly from the object
 //DECLARE_EVENT_TwoParams(AMovableObject, FOnMoveObjectAttributesChanged, const float, const float);
 

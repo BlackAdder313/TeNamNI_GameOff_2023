@@ -4,10 +4,11 @@
 
 #include "CoreMinimal.h"
 #include "Engine/StaticMeshActor.h"
-#include "GameplayTagContainer.h"
+#include "TriggeredObject.h"
+#include "TriggeredObjectInterface.h"
 #include "InteractableObject.generated.h"
 
-// TODO: Would use this if we went through the path of having the character register here to fetch
+// Kostas - Self note: Would use this if we went through the path of having the character register here to fetch
 // attributes directly from the object
 //DECLARE_EVENT_TwoParams(AInteractableObject, FOnMoveObjectAttributesChanged, const float, const float);
 
@@ -22,7 +23,7 @@ enum class EObjectInteractionType
 };
 
 UCLASS(BlueprintType, meta = (DisplayName = "Interactable Object"))
-class SPYSCALEGAME_API AInteractableObject : public AStaticMeshActor 
+class SPYSCALEGAME_API AInteractableObject : public AStaticMeshActor, public ITriggeredObjectInterface
 {
 	GENERATED_BODY()
 
@@ -53,12 +54,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector MinObjectScale = FVector(.5f);
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	TObjectPtr<class ATriggeredObject> ObjectToNotify;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float TriggerEnableMassThreshold = 0.f;
+
 protected:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	TObjectPtr<class UBoxComponent> TriggerVolume;
 	
 	void SetupTriggerVolume();
-
 
 private:
 	// overlap begin function

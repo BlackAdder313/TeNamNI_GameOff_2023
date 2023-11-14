@@ -155,7 +155,7 @@ void ASpyScaleGameCharacter::ToggleWatch(const FInputActionValue& Value)
 		
 		return;
 
-		// TODO: This should also be called if we worked with events
+		// Kostas - self note: This should also be called if we worked with events
 		//OnMoveObjectAttributesChanged.RemoveAll(this);
 	}
 }
@@ -178,7 +178,7 @@ void ASpyScaleGameCharacter::HoldObject()
 			movableActor->OnInteract();
 		}
 
-		// TODO: Evaluate if it'd be helpful to register to an event like that from the movable / interactable object
+		// Kostas - self note: Evaluate if it'd be helpful to register to an event like that from the movable / interactable object
 		// or keeping it like that - coupled with direct functions - is good enough
 		// movableActor->OnMoveObjectAttributesChanged.AddRaw(this, &ASpyScaleGameCharacter::UpdateMoveObjectAttributes);
 	}
