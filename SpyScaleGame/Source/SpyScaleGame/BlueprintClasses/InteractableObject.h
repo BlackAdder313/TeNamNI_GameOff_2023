@@ -3,7 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "Engine/TriggerVolume.h"
+#include "Engine/StaticMeshActor.h"
 #include "GameplayTagContainer.h"
 #include "InteractableObject.generated.h"
 
@@ -11,21 +11,31 @@
 // attributes directly from the object
 //DECLARE_EVENT_TwoParams(AInteractableObject, FOnMoveObjectAttributesChanged, const float, const float);
 
+
+UENUM()
+enum class EObjectInteractionType
+{
+	None,
+	Press,
+	Proximity,
+	Weight
+};
+
 UCLASS(BlueprintType, meta = (DisplayName = "Interactable Object"))
-class SPYSCALEGAME_API AInteractableObject : public ATriggerVolume
+class SPYSCALEGAME_API AInteractableObject : public AStaticMeshActor 
 {
 	GENERATED_BODY()
 
 public:
+
+	AInteractableObject();
+
 	// AACtor overrides
 	virtual void BeginPlay() override;
 
-	// Called when player is going over this object with gun
-	UFUNCTION(BlueprintImplementableEvent, Category = "Object Type|Interface functions")
-	void OnScan_BP();
-	
-	// Calls both C++ and Blueprint implentations
-	void OnScan();
+	//~ Begin UObject Interface
+	virtual void PostActorCreated() override;
+	//virtual void PostLoad() override;
 
 	// Called when player is trying to interact with this object
 	UFUNCTION(BlueprintImplementableEvent, Category = "Object Type|Interface functions")
@@ -34,12 +44,36 @@ public:
 	// Calls both C++ and Blueprint implentations
 	void OnInteract();
 
-	UPROPERTY(VisibleAnywhere, Category = Gameplay)
-	FGameplayTagContainer ObjectTypeTag;
+	UPROPERTY(EditAnywhere, Category = Gameplay)
+	EObjectInteractionType ObjectInteractionType = EObjectInteractionType::None;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector MaxObjectScale = FVector(3.f);
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector MinObjectScale = FVector(.5f);
+
+protected:
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	TObjectPtr<class UBoxComponent> TriggerVolume;
+	
+	void SetupTriggerVolume();
+
+
+private:
+	// overlap begin function
+	UFUNCTION()
+	void OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
+						AActor* OtherActor,
+						UPrimitiveComponent* OtherComp,
+						int32 OtherBodyIndex,
+						bool bFromSweep,
+						const FHitResult& SweepResult);
+
+	// overlap end function
+	UFUNCTION()
+	void OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+					  AActor* OtherActor,
+					  UPrimitiveComponent* OtherComp,
+					  int32 OtherBodyIndex);
 };

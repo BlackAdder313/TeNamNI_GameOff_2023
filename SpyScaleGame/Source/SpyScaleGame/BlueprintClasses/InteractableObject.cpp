@@ -1,22 +1,46 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "InteractableObject.h"
+#include "Components/BoxComponent.h"
 
-
-void AInteractableObject::BeginPlay()
+AInteractableObject::AInteractableObject()
 {
-	if (UPrimitiveComponent* rootPrimitiveComp = Cast<UPrimitiveComponent>(GetRootComponent()))
+	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
+	TriggerVolume->SetCollisionProfileName("OverlapOnlyPawn");
+}
+
+void AInteractableObject::PostActorCreated()
+{
+	Super::PostActorCreated();
+	SetupTriggerVolume();
+}
+
+//void AInteractableObject::PostLoad()
+//{
+//	Super::PostLoad();
+//	SetupTriggerVolume();
+//}
+
+void AInteractableObject::BeginPlay() {}
+
+void AInteractableObject::SetupTriggerVolume()
+{
+	if (const auto& staticMesh = GetStaticMeshComponent()->GetStaticMesh())
 	{
-		rootPrimitiveComp->SetSimulatePhysics(true);
+		const auto& staticMeshComponent = GetStaticMeshComponent();
+		TriggerVolume->AttachToComponent(staticMeshComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
+		
+		const FBoxSphereBounds boundingBox = staticMesh->GetBoundingBox();
+		const FVector meshCollisionExtent = staticMeshComponent->GetCollisionShape().GetExtent();
+
+		TriggerVolume->SetRelativeLocation(FVector(0.f, 0.f, -boundingBox.BoxExtent.Z));
+		TriggerVolume->SetBoxExtent(boundingBox.BoxExtent * 1.1f, true);
+
+		// Ensure delegate is bound (just once)
+		TriggerVolume->OnComponentBeginOverlap.RemoveAll(this);
+		TriggerVolume->OnComponentBeginOverlap.AddDynamic(this, &AInteractableObject::OnOverlapBegin);
+		TriggerVolume->OnComponentEndOverlap.AddDynamic(this, &AInteractableObject::OnOverlapEnd);
 	}
-};
-
-void AInteractableObject::OnScan()
-{ 
-	UE_LOG(LogTemp, Warning, TEXT("On scan"));
-
-	// Call Blueprint behaviour
-	OnScan_BP();
 }
 
 void AInteractableObject::OnInteract()
@@ -25,4 +49,26 @@ void AInteractableObject::OnInteract()
 
 	// Call Blueprint behaviour
 	OnInteract_BP();
+}
+
+void AInteractableObject::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
+										 AActor* OtherActor,
+										 UPrimitiveComponent* OtherComp,
+										 int32 OtherBodyIndex,
+										 bool bFromSweep,
+										 const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this)) {
+		UE_LOG(LogTemp, Warning, TEXT("OnOverlapBegin"));
+	}
+}
+
+void AInteractableObject::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
+									   AActor* OtherActor,
+									   UPrimitiveComponent* OtherComp,
+									   int32 OtherBodyIndex)
+{
+	if (OtherActor && (OtherActor != this)) {
+		UE_LOG(LogTemp, Warning, TEXT("OnOverlapEnd"));
+	}
 }

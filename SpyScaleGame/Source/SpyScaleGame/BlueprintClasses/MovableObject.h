@@ -7,11 +7,6 @@
 #include "GameplayTagContainer.h"
 #include "MovableObject.generated.h"
 
-namespace ObjectTypeGameplayTags
-{
-	extern const FName MoveableObjectTypeGameplayTag;
-}
-
 // TODO: Would use this if we went through the path of having the character register here to fetch
 // attributes directly from the object
 //DECLARE_EVENT_TwoParams(AMovableObject, FOnMoveObjectAttributesChanged, const float, const float);
@@ -22,9 +17,6 @@ class SPYSCALEGAME_API AMovableObject : public AStaticMeshActor
 	GENERATED_BODY()
 
 public:
-	/** Sets default values for this component's properties */
-	AMovableObject();
-
 	// AACtor overrides
 	virtual void BeginPlay() override;
 
@@ -34,9 +26,6 @@ public:
 	
 	// Calls both C++ and Blueprint implentations
 	void OnInteract();
-
-	UPROPERTY(VisibleAnywhere, Category = Gameplay)
-	FGameplayTagContainer ObjectTypeTag;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	FVector MaxObjectScale = FVector(3.f);
