@@ -6,7 +6,7 @@
 AInteractableObject::AInteractableObject()
 {
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
-	TriggerVolume->SetCollisionProfileName("OverlapOnlyPawn");
+	TriggerVolume->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 void AInteractableObject::PostActorCreated()
