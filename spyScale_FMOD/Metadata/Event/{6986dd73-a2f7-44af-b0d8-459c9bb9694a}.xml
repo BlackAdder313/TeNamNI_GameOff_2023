@@ -187,7 +187,7 @@
 	</object>
 	<object class="EventMixerMaster" id="{0f52c9a9-1b52-423a-b4a5-c0cbbe22acdc}">
 		<property name="volume">
-			<value>-7.5</value>
+			<value>-13</value>
 		</property>
 		<relationship name="modulators">
 			<destination>{3a3d402f-2a23-4321-8910-ab19c7e60103}</destination>
@@ -381,7 +381,6 @@
 		<property name="length">
 			<value>41.652895833333332</value>
 		</property>
-		<property name="name" />
 		<relationship name="audioFile">
 			<destination>{dd8f2b7f-e169-4115-85b2-2175cf57da71}</destination>
 		</relationship>
@@ -588,7 +587,6 @@
 		<property name="length">
 			<value>35.702895833333329</value>
 		</property>
-		<property name="name" />
 		<relationship name="timeline">
 			<destination>{a77e026e-d19e-4a3b-a89a-329d3787fd96}</destination>
 		</relationship>

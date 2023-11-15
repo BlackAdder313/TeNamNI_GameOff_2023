@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <objects serializationModel="Studio.02.02.00">
 	<object class="Workspace" id="{982a08b8-92fa-4b65-be11-e9463e55b8f6}">
+		<property name="builtBanksOutputDirectory">
+			<value>M:/Git Repositories/TeNamNI_GameOff_2023/SpyScaleGame/Content/FMOD</value>
+		</property>
 		<relationship name="masterEventFolder">
 			<destination>{6809f294-16d4-41e5-afb0-f0fac3154d13}</destination>
 		</relationship>
