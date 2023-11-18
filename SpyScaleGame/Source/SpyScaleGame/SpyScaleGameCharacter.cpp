@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "SpyScaleGameCharacter.h"
-#include "SpyScaleGameProjectile.h"
+#include "BlueprintClasses\InteractableObject.h"
 #include "Animation/AnimInstance.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
@@ -94,6 +94,8 @@ void ASpyScaleGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		EnhancedInputComponent->BindAction(ToggleWatchAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::ToggleWatch);
 		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::MoveHeldObject);
 		EnhancedInputComponent->BindAction(ScaleHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ScaleHeldObject);
+
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::Interact);
 	}
 	else
 	{
@@ -112,7 +114,6 @@ void ASpyScaleGameCharacter::ResetMoveObjectAttributes()
 	MinObjectScale = Internal::MinScale;
 	MaxObjectScale = Internal::MaxScale;
 }
-
 
 void ASpyScaleGameCharacter::Move(const FInputActionValue& Value)
 {
@@ -137,6 +138,14 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 		// add yaw and pitch input to controller
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
+{
+	if (m_interactableObject.IsValid())
+	{
+		m_interactableObject.Get()->OnInteract();
 	}
 }
 
@@ -270,5 +279,21 @@ void ASpyScaleGameCharacter::Tick(float DeltaTime)
 	if(m_isWatchActivated && !m_isHoldingObject)
 	{
 		HoldObject();
+	}
+}
+
+void ASpyScaleGameCharacter::RegisterInteractElement(AInteractableObject* interactableObject)
+{
+	if (!m_interactableObject.IsValid() || m_interactableObject.Get() != interactableObject)
+	{
+		m_interactableObject = MakeWeakObjectPtr<AInteractableObject>(interactableObject);
+	}
+}
+
+void ASpyScaleGameCharacter::UnregisterInteractElement(AInteractableObject* interactableObject)
+{
+	if (m_interactableObject.IsValid() && m_interactableObject.Get() == interactableObject)
+	{
+		m_interactableObject.Reset();
 	}
 }

@@ -2,17 +2,18 @@
 
 #include "InteractableObject.h"
 #include "Components/BoxComponent.h"
+#include "../SpyScaleGameCharacter.h"
 
 AInteractableObject::AInteractableObject()
 {
 	TriggerVolume = CreateDefaultSubobject<UBoxComponent>(TEXT("TriggerVolume"));
-	TriggerVolume->SetCollisionProfileName("OverlapAllDynamic");
 }
 
 void AInteractableObject::PostActorCreated()
 {
+	TrySetupTriggerVolume();
+
 	Super::PostActorCreated();
-	SetupTriggerVolume();
 }
 
 //void AInteractableObject::PostLoad()
@@ -21,20 +22,32 @@ void AInteractableObject::PostActorCreated()
 //	SetupTriggerVolume();
 //}
 
-void AInteractableObject::BeginPlay() {}
-
-void AInteractableObject::SetupTriggerVolume()
+void AInteractableObject::BeginPlay()
 {
+	Super::BeginPlay();
+	
+	m_triggerActivators.Empty();
+}
+
+void AInteractableObject::TrySetupTriggerVolume()
+{
+	if (TriggerVolume && TriggerVolume->GetCollisionProfileName() == "OverlapAllDynamic")
+	{
+		return;
+	}
+	
 	if (const auto& staticMesh = GetStaticMeshComponent()->GetStaticMesh())
 	{
+		TriggerVolume->SetCollisionProfileName("OverlapAllDynamic");
+		
 		const auto& staticMeshComponent = GetStaticMeshComponent();
 		TriggerVolume->AttachToComponent(staticMeshComponent, FAttachmentTransformRules::SnapToTargetIncludingScale);
 		
 		const FBoxSphereBounds boundingBox = staticMesh->GetBoundingBox();
 		const FVector meshCollisionExtent = staticMeshComponent->GetCollisionShape().GetExtent();
 
-		TriggerVolume->SetRelativeLocation(FVector(0.f, 0.f, -boundingBox.BoxExtent.Z));
-		TriggerVolume->SetBoxExtent(boundingBox.BoxExtent * 1.1f, true);
+		//TriggerVolume->SetRelativeLocation(FVector(0.f, 0.f, -boundingBox.BoxExtent.Z));
+		TriggerVolume->SetBoxExtent(boundingBox.BoxExtent * 1.2f, true);
 
 		// Ensure delegate is bound (just once)
 		TriggerVolume->OnComponentBeginOverlap.RemoveAll(this);
@@ -67,27 +80,54 @@ void AInteractableObject::OnOverlapBegin(UPrimitiveComponent* OverlappedComp,
 	if (OtherActor && (OtherActor != this)) {
 		switch (ObjectInteractionType)
 		{
-		case EObjectInteractionType::Press:
-			// TODO: Check if the entered actor is of SpyScaleGameCharacter
-			// If so, register this into the Character actor, so that
-			// when IA_Interact is pressed, the OnInteract function of this object will be called
-			break;
+			case EObjectInteractionType::Press:
+			{
+				if (ASpyScaleGameCharacter* player = Cast<ASpyScaleGameCharacter>(OtherActor))
+				{
+					player->RegisterInteractElement(this);
+				}
+				break;
+			}
+			case EObjectInteractionType::Proximity:
+				if (!ObjectToNotify)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("AInteractableObject::OnOverlapBegin -- No Object to notify is set"));
+					return;
+				}
 
-		case EObjectInteractionType::Proximity:
-			// TODO: Call the OnTriggerEnabled function on the ObjectToNotify
-			// and keep reference of actor the enabled the trigger
-			break;
-		case EObjectInteractionType::Weight:
-			// TODO: Get static mesh of actor and get mass
-			// If mass above TriggerEnableMassThreshold,
-			// Call the OnTriggerEnabled function on the ObjectToNotify
-			// and keep reference of actor the enabled the trigger
-		case EObjectInteractionType::None:
-			// Handled at start of function.
-			// Doing this instead of using default,
-			// so that if a new interaction type is added,
-			// we are obliged by the compiler to take care of it
-			return;
+				ObjectToNotify->OnTriggerEnabled();
+				m_triggerActivators.Add(OtherActor);
+
+				break;
+			case EObjectInteractionType::Weight:
+			{
+				if (!OtherComp)
+				{
+					return;
+				}
+
+				m_triggerActivators.Add(OtherActor);
+
+				float totalMass = 0.f;
+				for (auto triggerActivator : m_triggerActivators)
+				{
+					totalMass += Cast<UPrimitiveComponent>(triggerActivator->GetRootComponent())->GetMass();
+				}
+
+				if (totalMass >= TriggerEnableMassThreshold)
+				{
+					ObjectToNotify->OnTriggerEnabled();
+
+				}
+
+				break;
+			}
+			case EObjectInteractionType::None:
+				// Handled at start of function.
+				// Doing this instead of using default,
+				// so that if a new interaction type is added,
+				// we are obliged by the compiler to take care of it
+				return;
 		}
 	}
 }
@@ -106,24 +146,54 @@ void AInteractableObject::OnOverlapEnd(UPrimitiveComponent* OverlappedComp,
 	if (OtherActor && (OtherActor != this)) {
 		switch (ObjectInteractionType)
 		{
-		case EObjectInteractionType::Press:
-			// TODO: Unregister self from SpyScaleGameCharacter,
-			// if actor is the playercharacter
-			break;
+			case EObjectInteractionType::Press:
+				if (ASpyScaleGameCharacter* player = Cast<ASpyScaleGameCharacter>(OtherActor))
+				{
+					player->UnregisterInteractElement(this);
+				}
+				break;
 
-		case EObjectInteractionType::Proximity:
-			// TODO: Call the OnTriggerDisabled function on the ObjectToNotify
-			// if is the actor that enabled the trigger
-			break;
-		case EObjectInteractionType::Weight:
-			// TODO: Call the OnTriggerDisabled function on the ObjectToNotify
-			// if is the actor that enabled the trigger
-		case EObjectInteractionType::None:
-			// Handled at start of function.
-			// Doing this instead of using default,
-			// so that if a new interaction type is added,
-			// we are obliged by the compiler to take care of it
-			return;
+			case EObjectInteractionType::Proximity:
+				if (m_triggerActivators.Contains(OtherActor))
+				{
+					m_triggerActivators.Remove(OtherActor);
+					if (m_triggerActivators.IsEmpty())
+					{
+						ObjectToNotify->OnTriggerDisabled();
+					}
+				}
+			
+				break;
+			case EObjectInteractionType::Weight:
+				if (!OtherComp)
+				{
+					return;
+				}
+
+				if (m_triggerActivators.Contains(OtherActor))
+				{
+					m_triggerActivators.Remove(OtherActor);
+				
+					float totalMass = 0.f;
+					for (auto triggerActivator : m_triggerActivators)
+					{
+						totalMass += Cast<UPrimitiveComponent>(triggerActivator->GetRootComponent())->GetMass();
+					}
+
+					if (totalMass < TriggerEnableMassThreshold)
+					{
+						ObjectToNotify->OnTriggerDisabled();
+					}
+				
+					break;
+				}
+
+			case EObjectInteractionType::None:
+				// Handled at start of function.
+				// Doing this instead of using default,
+				// so that if a new interaction type is added,
+				// we are obliged by the compiler to take care of it
+				return;
 		}
 	}
 }

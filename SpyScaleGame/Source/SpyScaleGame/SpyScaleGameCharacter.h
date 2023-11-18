@@ -13,6 +13,7 @@ namespace ObjectTypeGameplayTags
 	extern const FName MoveableObjectTypeGameplayTag;
 }
 
+class AInteractableObject;
 class UInputComponent;
 class USkeletalMeshComponent;
 class UCameraComponent;
@@ -42,6 +43,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = Weapon)
 	bool GetHasRifle();
 
+	void RegisterInteractElement(AInteractableObject* interactableObject);
+	void UnregisterInteractElement(AInteractableObject* interactableObject);
+
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
 	/** Returns FirstPersonCameraComponent subobject **/
@@ -61,6 +65,9 @@ protected:
 
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
+
+	/** Called for looking input */
+	void Interact(const FInputActionValue& Value);
 
 	/** Called for pulling / pushing an object */
 	void ToggleWatch(const FInputActionValue& Value);
@@ -99,6 +106,9 @@ private:
 	UInputAction* LookAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* InteractAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleWatchAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
@@ -130,6 +140,7 @@ private:
 	
 	TWeakObjectPtr<UPrimitiveComponent> m_movableObject;
 	TWeakObjectPtr<AMovableObject> m_movableActor;
+	TWeakObjectPtr <AInteractableObject> m_interactableObject;
 	
 	bool m_isHoldingObject = false;
 	bool m_isWatchActivated = false;

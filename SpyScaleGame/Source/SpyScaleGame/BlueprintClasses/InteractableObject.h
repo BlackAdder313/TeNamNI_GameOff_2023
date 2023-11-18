@@ -48,23 +48,17 @@ public:
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	EObjectInteractionType ObjectInteractionType = EObjectInteractionType::None;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	FVector MaxObjectScale = FVector(3.f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	FVector MinObjectScale = FVector(.5f);
-
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
-	TObjectPtr<class ATriggeredObject> ObjectToNotify;
+	UPROPERTY(EditInstanceOnly, BlueprintReadWrite, Category = Gameplay)
+	class ATriggeredObject* ObjectToNotify;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float TriggerEnableMassThreshold = 0.f;
 
 protected:
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Instanced, Category = Gameplay)
 	TObjectPtr<class UBoxComponent> TriggerVolume;
 	
-	void SetupTriggerVolume();
+	void TrySetupTriggerVolume();
 
 private:
 	// overlap begin function
@@ -82,4 +76,6 @@ private:
 					  AActor* OtherActor,
 					  UPrimitiveComponent* OtherComp,
 					  int32 OtherBodyIndex);
+
+	TArray<TObjectPtr<AActor>> m_triggerActivators;
 };
