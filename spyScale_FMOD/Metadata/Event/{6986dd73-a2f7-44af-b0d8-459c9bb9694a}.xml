@@ -140,12 +140,12 @@
 	<object class="GroupTrack" id="{675564dc-080d-47cd-9327-85cff0ac8ccc}">
 		<relationship name="modules">
 			<destination>{adaa9273-624b-4595-b362-97dff29b2c2a}</destination>
-			<destination>{45e47e99-a9f2-43da-b874-303a783b1f2c}</destination>
 			<destination>{d727311d-5126-4763-975a-81bdc4c51544}</destination>
 			<destination>{58f36f5c-d3f9-4328-b299-e55475825308}</destination>
 			<destination>{d670ff5c-df54-4667-b408-b8219844fd0d}</destination>
 			<destination>{a1afd90f-e2d3-43de-a547-2823658fa983}</destination>
 			<destination>{7ce56f34-83b1-4bd2-a0cd-06118fe166ec}</destination>
+			<destination>{45e47e99-a9f2-43da-b874-303a783b1f2c}</destination>
 		</relationship>
 		<relationship name="mixerGroup">
 			<destination>{7be124bd-b9e5-47f0-9db9-2acce75e4499}</destination>
@@ -487,7 +487,7 @@
 	</object>
 	<object class="EventMixerGroup" id="{e58f4eef-1287-416b-bee3-b0add266fea4}">
 		<property name="volume">
-			<value>-80</value>
+			<value>1</value>
 		</property>
 		<property name="name">
 			<value>Glitch</value>
@@ -515,20 +515,12 @@
 			<destination>{bfdd1080-d314-498d-b30a-f6182383e999}</destination>
 		</relationship>
 	</object>
-	<object class="SingleSound" id="{45e47e99-a9f2-43da-b874-303a783b1f2c}">
-		<property name="start">
-			<value>1</value>
-		</property>
-		<property name="maxVoices">
-			<value>1</value>
-		</property>
-		<relationship name="audioFile">
-			<destination>{8d7f5848-48bb-49e4-b284-2575bb508dba}</destination>
-		</relationship>
-	</object>
 	<object class="SingleSound" id="{d727311d-5126-4763-975a-81bdc4c51544}">
 		<property name="start">
 			<value>2</value>
+		</property>
+		<property name="startOffset">
+			<value>4.5</value>
 		</property>
 		<property name="maxVoices">
 			<value>1</value>
@@ -562,6 +554,17 @@
 		<property name="length">
 			<value>0</value>
 		</property>
+	</object>
+	<object class="SingleSound" id="{45e47e99-a9f2-43da-b874-303a783b1f2c}">
+		<property name="startOffset">
+			<value>1.5</value>
+		</property>
+		<property name="maxVoices">
+			<value>1</value>
+		</property>
+		<relationship name="audioFile">
+			<destination>{8d7f5848-48bb-49e4-b284-2575bb508dba}</destination>
+		</relationship>
 	</object>
 	<object class="EventMixerGroup" id="{7be124bd-b9e5-47f0-9db9-2acce75e4499}">
 		<property name="name">
