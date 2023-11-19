@@ -143,7 +143,7 @@ void ASpyScaleGameCharacter::InteractionTraceUpdate(float DeltaTime)
 	const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
 	const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
 
-	FCollisionQueryParams TraceParams(TEXT("SpyPlayer_Hold_Object"), true);
+	FCollisionQueryParams TraceParams(TEXT("InteractionTrace"), true);
 	
 	GetWorld()->LineTraceSingleByChannel(TraceOutuput.HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams);
 	TraceOutuput.Interactable = Cast<ASSGInteractable>(TraceOutuput.HitResult.GetActor());
@@ -180,8 +180,18 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		FVector BoxExtent;
 		HeldObjectPtr->GetActorBounds(true, Origin, BoxExtent);
 
-		const float HeldDistance = BoxExtent.GetMax() + MinHoldingDistance;
-		const FVector TargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
+		FCollisionQueryParams TraceParams(TEXT("HoldObjectTrace"), true);
+		TraceParams.AddIgnoredActor(HeldObjectPtr);
+		TraceParams.AddIgnoredActor(this);
+
+		FHitResult HitResult;
+		const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
+		const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
+		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, TraceParams);
+
+		const float HeldDistance = FMath::Min(BoxExtent.GetMax() + MinHoldingDistance, HitResult.bBlockingHit ? HitResult.Distance : FLT_MAX);
+		const FVector RequestedTargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
+		const FVector TargetLocation = FMath::VInterpTo(HeldObjectPtr->GetActorLocation(), RequestedTargetLocation, DeltaTime, HoldInterpolationSpeed);
 
 		PhysicsHandleComponent->SetTargetLocation(TargetLocation);
 	}
