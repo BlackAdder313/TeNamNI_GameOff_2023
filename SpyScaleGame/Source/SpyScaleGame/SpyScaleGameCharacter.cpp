@@ -254,7 +254,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 
 		if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 		{
-			m_handleComp->GrabComponentAtLocationWithRotation(HeldObject->GetStaticMesh(),
+			m_handleComp->GrabComponentAtLocationWithRotation(HeldObject->GetStaticMeshComponent(),
 				FName(),
 				HeldObject->GetActorLocation(),
 				HeldObject->GetActorRotation());

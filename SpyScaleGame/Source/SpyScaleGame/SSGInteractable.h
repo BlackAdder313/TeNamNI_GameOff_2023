@@ -3,12 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "GameFramework/Actor.h"
+#include "Engine/StaticMeshActor.h"
 #include "SSGInteractable.generated.h"
 
 
 UCLASS(Blueprintable)
-class SPYSCALEGAME_API ASSGInteractable : public AActor
+class SPYSCALEGAME_API ASSGInteractable : public AStaticMeshActor
 {
 	GENERATED_BODY()
 	
@@ -23,15 +23,11 @@ protected:
 public:	
 	void AdjustScale(float Direction);
 
-	UStaticMeshComponent* GetStaticMesh() const { return StaticMeshComponent;  }
-	float GetMass() const { return StaticMeshComponent->GetMass(); }
+	float GetMass() const { return GetStaticMeshComponent()->GetMass(); }
 
 protected:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<class UStaticMeshComponent> StaticMeshComponent;
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
 	float ScaleAdjustmentSpeed = 1.f;

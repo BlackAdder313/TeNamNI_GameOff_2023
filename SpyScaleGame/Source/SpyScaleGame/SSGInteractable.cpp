@@ -8,14 +8,11 @@ ASSGInteractable::ASSGInteractable()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	StaticMeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("StaticMeshComponent"));
-	StaticMeshComponent->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
-	StaticMeshComponent->Mobility = EComponentMobility::Movable;
-	StaticMeshComponent->SetSimulatePhysics(true);
-	StaticMeshComponent->SetGenerateOverlapEvents(true);
-	StaticMeshComponent->bUseDefaultCollision = true;
-
-	RootComponent = StaticMeshComponent;
+	GetStaticMeshComponent()->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+	GetStaticMeshComponent()->Mobility = EComponentMobility::Movable;
+	GetStaticMeshComponent()->SetSimulatePhysics(true);
+	GetStaticMeshComponent()->SetGenerateOverlapEvents(true);
+	GetStaticMeshComponent()->bUseDefaultCollision = true;
 }
 
 // Called when the game starts or when spawned
@@ -23,8 +20,8 @@ void ASSGInteractable::BeginPlay()
 {
 	Super::BeginPlay();
 	
-	OriginalScale = StaticMeshComponent->GetRelativeScale3D();
-	OriginalMassScale = StaticMeshComponent->GetMassScale();
+	OriginalScale = GetStaticMeshComponent()->GetRelativeScale3D();
+	OriginalMassScale = GetStaticMeshComponent()->GetMassScale();
 }
 
 void ASSGInteractable::AdjustScale(float Direction)
@@ -34,7 +31,7 @@ void ASSGInteractable::AdjustScale(float Direction)
 
 	const FVector Adjustment = CurrentScaleAdjustment * OriginalScale.GetSafeNormal();
 
-	StaticMeshComponent->SetRelativeScale3D(OriginalScale + Adjustment);
+	GetStaticMeshComponent()->SetRelativeScale3D(OriginalScale + Adjustment);
 }
 
 // Called every frame
