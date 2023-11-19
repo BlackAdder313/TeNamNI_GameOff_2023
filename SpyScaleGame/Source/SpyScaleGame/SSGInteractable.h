@@ -33,10 +33,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<class UStaticMeshComponent> StaticMeshComponent;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Gameplay)
 	float ScaleAdjustmentSpeed = 1.f;
 
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category = Gameplay)
 	FFloatInterval ScaleAdjustmentInterval = FFloatInterval(-2.f, 2.f);
 
 	FVector OriginalScale = FVector::ZeroVector;

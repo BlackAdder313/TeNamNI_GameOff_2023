@@ -32,9 +32,17 @@ public:
 	bool IsComplete() const { return ActiveInteractables.Num() && TriggerMassThreshold <= CurrentMass; }
 
 protected:
-
+	// How much mass it requires to complete the object when it enters the trigger
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	float TriggerMassThreshold = 0.f;
+
+	// How long it takes to complete once the conditions are satisfied to complete 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float CompleteTimer = 1.f;
+
+	// The max speed an interactable can be moving before considered for completition
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
+	float MaxInteractableVelocity = 15.f;
 
 	UFUNCTION(BlueprintCallable)
 	void BP_TriggerOverlap(UPrimitiveComponent* OverlappedComp,
@@ -50,9 +58,14 @@ protected:
 		UPrimitiveComponent* OtherComp,
 		int32 OtherBodyIndex);
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void On_CompleteChange(bool bHasCompleted);
+
 	void Track(const ASSGInteractable& Interactable);
 	void Untrack(const ASSGInteractable& Interactable);
 
 	TArray<TWeakObjectPtr<const ASSGInteractable>> ActiveInteractables;
 	float CurrentMass = 0.f;
+	float CurrentCompletitonTimer = 0.f;
+	bool bIsComplete = false;
 };

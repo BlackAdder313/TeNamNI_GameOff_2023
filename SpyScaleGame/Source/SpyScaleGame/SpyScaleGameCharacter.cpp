@@ -280,6 +280,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		const float HeldDistance = BoxExtent.GetMax() + MinHoldingDistance;
 		const FVector TargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
 
+		//m_handleComp->InterpolationSpeed = 1.f;
 		m_handleComp->SetTargetLocation(TargetLocation);
 	}
 }

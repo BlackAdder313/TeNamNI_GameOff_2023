@@ -5,14 +5,6 @@
 
 #include "SSGInteractable.h"
 
-namespace Trigger
-{
-	namespace Internal
-	{
-		float MAX_VELOCITY_TOLERANCE = 5.f;
-	}
-}
-
 // Sets default values
 ASSGTrigger::ASSGTrigger()
 {
@@ -47,10 +39,32 @@ void ASSGTrigger::Tick(float DeltaTime)
 		}
 
 		// only allow mass on things that have settled...
-		if (Interactable->GetVelocity().Size() < Trigger::Internal::MAX_VELOCITY_TOLERANCE)
+		if (Interactable->GetVelocity().Size() < MaxInteractableVelocity)
 		{
 			CurrentMass += Interactable->GetMass();
 		}
+	}
+
+	bool bWasComplete = bIsComplete;
+
+	if (ActiveInteractables.Num() && TriggerMassThreshold <= CurrentMass)
+	{
+		if (!bIsComplete)
+		{
+			CurrentCompletitonTimer += DeltaTime;
+		}
+
+		bIsComplete = CompleteTimer <= CurrentCompletitonTimer;
+	}
+	else
+	{
+		bIsComplete = false;
+		CurrentCompletitonTimer = 0.f;
+	}
+
+	if (bWasComplete != bIsComplete)
+	{
+		On_CompleteChange(bIsComplete);
 	}
 }
 
