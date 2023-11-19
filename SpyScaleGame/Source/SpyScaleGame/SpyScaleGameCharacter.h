@@ -108,6 +108,9 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	float MinHoldingDistance = 300.f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	float HoldInterpolationSpeed = 20.f;
+
 	/* Physics Handle */
 	class UPhysicsHandleComponent* PhysicsHandleComponent = nullptr;
 
