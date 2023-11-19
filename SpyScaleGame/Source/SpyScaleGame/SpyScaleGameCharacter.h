@@ -19,6 +19,9 @@ class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
+class ASSGButton;
+class ASSGInteractable;
+
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -30,18 +33,6 @@ public:
 	GENERATED_BODY()
 
 	ASpyScaleGameCharacter();
-
-	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	bool bHasRifle;
-
-	/** Setter to set the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void SetHasRifle(bool bNewHasRifle);
-
-	/** Getter for the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle();
 
 	void RegisterInteractElement(AInteractableObject* interactableObject);
 	void UnregisterInteractElement(AInteractableObject* interactableObject);
@@ -77,6 +68,9 @@ protected:
 
 	/** Called for scaling an object */
 	void ScaleHeldObject(const FInputActionValue& Value);
+
+	void InteractionTraceUpdate(float DeltaTime);
+	void WatchUpdate(float DeltaTime);
 
 	void UpdateMoveObjectAttributes(const FVector scaleMin, const FVector scaleMax);
 	void ResetMoveObjectAttributes();
@@ -145,4 +139,14 @@ private:
 	bool m_isHoldingObject = false;
 	bool m_isWatchActivated = false;
 	float m_currentHoldingDistance = 0.f;
+
+	struct FInteractionTraceOutput
+	{
+		FHitResult HitResult;
+		TWeakObjectPtr<ASSGInteractable> Interactable;
+		TWeakObjectPtr<ASSGButton> Button;
+	};
+
+	FInteractionTraceOutput TraceOutuput;
+	TWeakObjectPtr<ASSGInteractable> HeldObject;
 };

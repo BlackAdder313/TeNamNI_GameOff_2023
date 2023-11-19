@@ -12,6 +12,8 @@
 #include "InputActionValue.h"
 #include "Logging/LogMacros.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
+#include "SSGInteractable.h"
+#include "SSGButton.h"
 
 DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
@@ -26,9 +28,6 @@ namespace Internal
 
 ASpyScaleGameCharacter::ASpyScaleGameCharacter()
 {
-	// Character doesnt have a rifle at start
-	bHasRifle = false;
-	
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(55.f, 96.0f);
 		
@@ -151,6 +150,14 @@ void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::ToggleWatch(const FInputActionValue& Value)
 {
+	// hi-jacking this function...
+	if (ASSGButton* Button = TraceOutuput.Button.Get())
+	{
+		Button->PressButton();
+		return;
+	}
+
+
 	m_isWatchActivated = !m_isWatchActivated;
 	
 	if (m_isHoldingObject)
@@ -206,33 +213,82 @@ void ASpyScaleGameCharacter::MoveHeldObject(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::ScaleHeldObject(const FInputActionValue& Value)
 {
+	float ScaleDirection = Value.Get<FVector>().X;
+
 	if (m_movableObject.IsValid())
 	{
-		float scaleDirection = Value.Get<FVector>().X;
 		auto heldObjectComponent = m_movableObject.Get();
 		auto currentScale = heldObjectComponent->GetComponentScale();
 		
-		FVector newScale = ClampVector(currentScale + scaleDirection * ScalingHoldingElementSpeed,
+		FVector newScale = ClampVector(currentScale + ScaleDirection * ScalingHoldingElementSpeed,
 									   MinObjectScale,
 									   MaxObjectScale);
 
 		heldObjectComponent->SetWorldScale3D(newScale);
 	}
+
+	if (ASSGInteractable* Interactable = TraceOutuput.Interactable.Get())
+	{
+		Interactable->AdjustScale(ScaleDirection);
+	}
 }
 
-void ASpyScaleGameCharacter::SetHasRifle(bool bNewHasRifle)
+void ASpyScaleGameCharacter::InteractionTraceUpdate(float DeltaTime)
 {
-	bHasRifle = bNewHasRifle;
+	TraceOutuput = FInteractionTraceOutput();
+	
+	const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
+	const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
+
+	FCollisionQueryParams TraceParams(TEXT("SpyPlayer_Hold_Object"), true);
+	
+	GetWorld()->LineTraceSingleByChannel(TraceOutuput.HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams);
+	TraceOutuput.Interactable = Cast<ASSGInteractable>(TraceOutuput.HitResult.GetActor());
+	TraceOutuput.Button = Cast<ASSGButton>(TraceOutuput.HitResult.GetActor());
 }
 
-bool ASpyScaleGameCharacter::GetHasRifle()
+void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 {
-	return bHasRifle;
+	if (!m_isWatchActivated)
+	{
+		m_handleComp->ReleaseComponent();
+		HeldObject.Reset();
+		return;
+	}
+
+	if (!HeldObject.IsValid())
+	{
+		HeldObject = TraceOutuput.Interactable;
+
+		if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
+		{
+			m_handleComp->GrabComponentAtLocationWithRotation(HeldObject->GetStaticMesh(),
+				FName(),
+				HeldObject->GetActorLocation(),
+				HeldObject->GetActorRotation());
+		}
+	}
+
+	if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
+	{
+		const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
+
+		FVector Origin;
+		FVector BoxExtent;
+		HeldObjectPtr->GetActorBounds(true, Origin, BoxExtent);
+
+		const float HeldDistance = BoxExtent.GetMax() + MinHoldingDistance;
+		const FVector TargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
+
+		m_handleComp->SetTargetLocation(TargetLocation);
+	}
 }
 
 void ASpyScaleGameCharacter::Tick(float DeltaTime)
 {
 	Tick_BP(DeltaTime);
+	InteractionTraceUpdate(DeltaTime);
+	WatchUpdate(DeltaTime);
 
 	FVector rayStart = FirstPersonCameraComponent->GetComponentLocation();
 	auto rayEnd = [&rayStart, direction = FirstPersonCameraComponent->GetComponentRotation().Vector()](const float distanceFactor)
