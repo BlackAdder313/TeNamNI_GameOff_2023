@@ -34,7 +34,7 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UPROPERTY(EditAnywhere, Category = Gameplay)
-	TArray<ASSGTrigger*> RequiredTriggers;
+	TArray<const ASSGTrigger*> RequiredTriggers;
 
 	bool bIsComplete = false;
 };

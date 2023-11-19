@@ -37,9 +37,9 @@ void ASSGButton::Tick(float DeltaTime)
 
 	bIsComplete = true;
 
-	for (ASSGTrigger* Trigger : RequiredTriggers)
+	for (const ASSGTrigger* Trigger : RequiredTriggers)
 	{
-		if (!Trigger->IsComplete())
+		if (Trigger && !Trigger->IsComplete())
 		{
 			bIsComplete = false;
 			break;
