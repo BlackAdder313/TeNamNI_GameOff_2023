@@ -142,22 +142,14 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 {
-	if (m_interactableObject.IsValid())
+	if (ASSGButton* Button = TraceOutuput.Button.Get())
 	{
-		m_interactableObject.Get()->OnInteract();
+		Button->PressButton();
 	}
 }
 
 void ASpyScaleGameCharacter::ToggleWatch(const FInputActionValue& Value)
 {
-	// hi-jacking this function...
-	if (ASSGButton* Button = TraceOutuput.Button.Get())
-	{
-		Button->PressButton();
-		return;
-	}
-
-
 	m_isWatchActivated = !m_isWatchActivated;
 	
 	if (m_isHoldingObject)
