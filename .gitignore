@@ -73,3 +73,5 @@ SpyScaleGame/Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 SpyScaleGame/DerivedDataCache/*
+
+SpyScaleGame/enc_temp_folder/*
