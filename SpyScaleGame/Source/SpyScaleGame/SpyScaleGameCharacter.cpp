@@ -79,6 +79,7 @@ void ASpyScaleGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		// Object manipulation
 		EnhancedInputComponent->BindAction(ToggleWatchAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::ToggleWatch);
 		EnhancedInputComponent->BindAction(ScaleHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ScaleHeldObject);
+		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::MoveHeldObject);
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::Interact);
 	}
@@ -136,6 +137,17 @@ void ASpyScaleGameCharacter::ScaleHeldObject(const FInputActionValue& Value)
 	}
 }
 
+void ASpyScaleGameCharacter::MoveHeldObject(const FInputActionValue& Value)
+{
+	if (HeldObject.IsValid())
+	{
+		float MoveDirection = Value.Get<FVector>().X;
+		CurrentHoldingDistance = FMath::Clamp(CurrentHoldingDistance + MoveDirection * MovingHoldingElementSpeed,
+			MinHoldingDistance,
+			MaxHoldingDistance);
+	}
+}
+
 void ASpyScaleGameCharacter::InteractionTraceUpdate(float DeltaTime)
 {
 	TraceOutuput = FInteractionTraceOutput();
@@ -162,7 +174,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 	if (!HeldObject.IsValid())
 	{
 		HeldObject = TraceOutuput.Interactable;
-
+		CurrentHoldingDistance = (MaxHoldingDistance + MinHoldingDistance) * .5f;
 		if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 		{
 			PhysicsHandleComponent->GrabComponentAtLocationWithRotation(HeldObject->GetStaticMeshComponent(),
@@ -189,7 +201,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
 		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, TraceParams);
 
-		const float HeldDistance = FMath::Min(BoxExtent.GetMax() + MinHoldingDistance, HitResult.bBlockingHit ? HitResult.Distance : FLT_MAX);
+		const float HeldDistance = FMath::Min(BoxExtent.GetMax() + CurrentHoldingDistance, HitResult.bBlockingHit ? HitResult.Distance : FLT_MAX);
 		const FVector RequestedTargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
 		const FVector TargetLocation = FMath::VInterpTo(HeldObjectPtr->GetActorLocation(), RequestedTargetLocation, DeltaTime, HoldInterpolationSpeed);
 

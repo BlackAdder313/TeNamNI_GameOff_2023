@@ -62,6 +62,9 @@ protected:
 	/** Called for scaling an object */
 	void ScaleHeldObject(const FInputActionValue& Value);
 
+	/** Called for pulling / pushing an object */
+	void MoveHeldObject(const FInputActionValue& Value);
+	
 	void InteractionTraceUpdate(float DeltaTime);
 	void WatchUpdate(float DeltaTime);
 
@@ -109,6 +112,9 @@ private:
 	float MinHoldingDistance = 300.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	float MovingHoldingElementSpeed = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	float HoldInterpolationSpeed = 20.f;
 
 	/* Physics Handle */
@@ -125,4 +131,5 @@ private:
 
 	FInteractionTraceOutput TraceOutuput;
 	TWeakObjectPtr<ASSGInteractable> HeldObject;
+	float CurrentHoldingDistance = 0.f;
 };
