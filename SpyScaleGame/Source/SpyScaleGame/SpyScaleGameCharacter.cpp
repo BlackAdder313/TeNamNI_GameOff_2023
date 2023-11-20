@@ -181,6 +181,8 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 				FName(),
 				HeldObject->GetActorLocation(),
 				HeldObject->GetActorRotation());
+
+			OnObjectHold_BP();
 		}
 	}
 
