@@ -3,7 +3,6 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "BlueprintClasses/MovableObject.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "SpyScaleGameCharacter.generated.h"
@@ -19,6 +18,9 @@ class USkeletalMeshComponent;
 class UCameraComponent;
 class UInputAction;
 class UInputMappingContext;
+class ASSGButton;
+class ASSGInteractable;
+
 struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
@@ -30,21 +32,6 @@ public:
 	GENERATED_BODY()
 
 	ASpyScaleGameCharacter();
-
-	/** Bool for AnimBP to switch to another animation set */
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Weapon)
-	bool bHasRifle;
-
-	/** Setter to set the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	void SetHasRifle(bool bNewHasRifle);
-
-	/** Getter for the bool */
-	UFUNCTION(BlueprintCallable, Category = Weapon)
-	bool GetHasRifle();
-
-	void RegisterInteractElement(AInteractableObject* interactableObject);
-	void UnregisterInteractElement(AInteractableObject* interactableObject);
 
 	/** Returns Mesh1P subobject **/
 	USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }
@@ -72,14 +59,14 @@ protected:
 	/** Called for pulling / pushing an object */
 	void ToggleWatch(const FInputActionValue& Value);
 
-	/** Called for pulling / pushing an object */
-	void MoveHeldObject(const FInputActionValue& Value);
-
 	/** Called for scaling an object */
 	void ScaleHeldObject(const FInputActionValue& Value);
 
-	void UpdateMoveObjectAttributes(const FVector scaleMin, const FVector scaleMax);
-	void ResetMoveObjectAttributes();
+	/** Called for pulling / pushing an object */
+	void MoveHeldObject(const FInputActionValue& Value);
+	
+	void InteractionTraceUpdate(float DeltaTime);
+	void WatchUpdate(float DeltaTime);
 
 	// APawn interface
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
@@ -111,6 +98,7 @@ private:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleWatchAction;
 
+	// todo: current not being used? do we need this?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveHeldObjectAction;
 
@@ -124,25 +112,24 @@ private:
 	float MinHoldingDistance = 300.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	float MovingHoldingElementSpeed = 10.f;
+	float MovingHoldingElementSpeed = 20.f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	FVector ScalingHoldingElementSpeed = FVector(.05f);
-
-	/** Called for holding an object */
-	void HoldObject();
-
-	FVector MaxObjectScale;
-	FVector MinObjectScale;
+	float HoldInterpolationSpeed = 20.f;
 
 	/* Physics Handle */
-	class UPhysicsHandleComponent* m_handleComp;
-	
-	TWeakObjectPtr<UPrimitiveComponent> m_movableObject;
-	TWeakObjectPtr<AMovableObject> m_movableActor;
-	TWeakObjectPtr <AInteractableObject> m_interactableObject;
-	
-	bool m_isHoldingObject = false;
-	bool m_isWatchActivated = false;
-	float m_currentHoldingDistance = 0.f;
+	class UPhysicsHandleComponent* PhysicsHandleComponent = nullptr;
+
+	bool bIsWatchActive = false;
+
+	struct FInteractionTraceOutput
+	{
+		FHitResult HitResult;
+		TWeakObjectPtr<ASSGInteractable> Interactable;
+		TWeakObjectPtr<ASSGButton> Button;
+	};
+
+	FInteractionTraceOutput TraceOutuput;
+	TWeakObjectPtr<ASSGInteractable> HeldObject;
+	float CurrentHoldingDistance = 0.f;
 };
