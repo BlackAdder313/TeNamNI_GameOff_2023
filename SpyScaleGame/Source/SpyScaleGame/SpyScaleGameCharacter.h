@@ -46,6 +46,10 @@ protected:
 	// Called when player is trying to interact with this object
 	UFUNCTION(BlueprintImplementableEvent, Category = "Actor BP Extensions")
 	void Tick_BP(float DeltaTime);
+
+	// Called when player starts holding an object
+	UFUNCTION(BlueprintImplementableEvent, Category = "Actor BP Extensions")
+	void OnObjectHold_BP();
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
