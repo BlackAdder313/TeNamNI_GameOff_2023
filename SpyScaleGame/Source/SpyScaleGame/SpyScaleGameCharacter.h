@@ -25,6 +25,14 @@ struct FInputActionValue;
 
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
+UENUM(BlueprintType)
+enum class EObjectAdjustmentMode
+{
+	Position,
+	Yaw,
+	Pitch,
+};
+
 UCLASS(config=Game)
 class ASpyScaleGameCharacter : public ACharacter
 {
@@ -67,8 +75,10 @@ protected:
 	void ScaleHeldObject(const FInputActionValue& Value);
 
 	/** Called for pulling / pushing an object */
-	void MoveHeldObject(const FInputActionValue& Value);
+	void AdjustHeldObject(const FInputActionValue& Value);
 	
+	void ChangeAdjustmentMode(const FInputActionValue& Value, EObjectAdjustmentMode NewMode);
+
 	void InteractionTraceUpdate(float DeltaTime);
 	void WatchUpdate(float DeltaTime);
 
@@ -76,38 +86,47 @@ protected:
 	virtual void SetupPlayerInputComponent(UInputComponent* InputComponent) override;
 	// End of APawn interface
 
-private:
+protected:
 	/** Pawn mesh: 1st person view (arms; seen only by self) */
 	UPROPERTY(VisibleDefaultsOnly, Category = Mesh)
-	USkeletalMeshComponent* Mesh1P;
+	USkeletalMeshComponent* Mesh1P = nullptr;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
-	UCameraComponent* FirstPersonCameraComponent;
+	UCameraComponent* FirstPersonCameraComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputMappingContext* DefaultMappingContext;
+	UInputMappingContext* DefaultMappingContext = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* JumpAction;
+	UInputAction* JumpAction = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveAction;
+	UInputAction* MoveAction = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* LookAction;
+	UInputAction* LookAction = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* InteractAction;
+	UInputAction* InteractAction = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ToggleWatchAction;
+	UInputAction* ToggleWatchAction = nullptr;
 
 	// todo: current not being used? do we need this?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* MoveHeldObjectAction;
+	UInputAction* MoveHeldObjectAction = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
-	UInputAction* ScaleHeldObjectAction;
+	UInputAction* ScaleHeldObjectAction = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SelectPositionMode = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SelectYawMode = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	UInputAction* SelectPitchMode = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	float MaxHoldingDistance = 700.f;
@@ -120,6 +139,12 @@ private:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	float HoldInterpolationSpeed = 20.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
+	float ObjectRotationSpeed = 20.f;
+
+	UPROPERTY(BlueprintReadOnly)
+	EObjectAdjustmentMode AdjustmentMode = EObjectAdjustmentMode::Position;
 
 	/* Physics Handle */
 	class UPhysicsHandleComponent* PhysicsHandleComponent = nullptr;
