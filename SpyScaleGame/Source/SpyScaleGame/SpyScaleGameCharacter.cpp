@@ -79,7 +79,11 @@ void ASpyScaleGameCharacter::SetupPlayerInputComponent(UInputComponent* PlayerIn
 		// Object manipulation
 		EnhancedInputComponent->BindAction(ToggleWatchAction, ETriggerEvent::Started, this, &ASpyScaleGameCharacter::ToggleWatch);
 		EnhancedInputComponent->BindAction(ScaleHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ScaleHeldObject);
-		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::MoveHeldObject);
+		EnhancedInputComponent->BindAction(MoveHeldObjectAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::AdjustHeldObject);
+
+		EnhancedInputComponent->BindAction(SelectPositionMode, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ChangeAdjustmentMode, EObjectAdjustmentMode::Position);
+		EnhancedInputComponent->BindAction(SelectYawMode, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ChangeAdjustmentMode, EObjectAdjustmentMode::Yaw);
+		EnhancedInputComponent->BindAction(SelectPitchMode, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::ChangeAdjustmentMode, EObjectAdjustmentMode::Pitch);
 
 		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &ASpyScaleGameCharacter::Interact);
 	}
@@ -137,14 +141,40 @@ void ASpyScaleGameCharacter::ScaleHeldObject(const FInputActionValue& Value)
 	}
 }
 
-void ASpyScaleGameCharacter::MoveHeldObject(const FInputActionValue& Value)
+void ASpyScaleGameCharacter::ChangeAdjustmentMode(const FInputActionValue& Value, EObjectAdjustmentMode NewMode)
 {
-	if (HeldObject.IsValid())
+	AdjustmentMode = NewMode;
+}
+
+void ASpyScaleGameCharacter::AdjustHeldObject(const FInputActionValue& Value)
+{
+	if (const ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 	{
-		float MoveDirection = Value.Get<FVector>().X;
-		CurrentHoldingDistance = FMath::Clamp(CurrentHoldingDistance + MoveDirection * MovingHoldingElementSpeed,
-			MinHoldingDistance,
-			MaxHoldingDistance);
+		const float MoveDirection = Value.Get<FVector>().X;
+		const FQuat ObjectRotation = HeldObjectPtr->GetStaticMeshComponent()->GetComponentQuat();
+
+		switch (AdjustmentMode)
+		{
+			case EObjectAdjustmentMode::Position:
+			{
+				CurrentHoldingDistance = FMath::Clamp(CurrentHoldingDistance + MovingHoldingElementSpeed * MoveDirection,
+					MinHoldingDistance,
+					MaxHoldingDistance);
+				break;
+			}
+			case EObjectAdjustmentMode::Yaw:
+			{
+				const FQuat NewRotation = ObjectRotation * FQuat(FVector::UpVector, FMath::DegreesToRadians(ObjectRotationSpeed * MoveDirection));
+				PhysicsHandleComponent->SetTargetRotation(NewRotation.Rotator());
+				break;
+			}
+			case EObjectAdjustmentMode::Pitch:
+			{
+				const FQuat NewRotation = ObjectRotation * FQuat(FVector::RightVector, FMath::DegreesToRadians(ObjectRotationSpeed * MoveDirection));
+				PhysicsHandleComponent->SetTargetRotation(NewRotation.Rotator());
+				break;
+			}
+		}
 	}
 }
 
@@ -186,7 +216,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		}
 	}
 
-	if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
+	if (const ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 	{
 		const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
 
