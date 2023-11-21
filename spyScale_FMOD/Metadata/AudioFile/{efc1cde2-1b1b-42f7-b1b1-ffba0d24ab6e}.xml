@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{efc1cde2-1b1b-42f7-b1b1-ffba0d24ab6e}">
+		<property name="assetPath">
+			<value>room_crash_crash_vl3_rr2.flac</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>48</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>13.776333333333334</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2741e13b-fc55-41d9-8835-134a2244a42f}</destination>
+		</relationship>
+	</object>
+</objects>

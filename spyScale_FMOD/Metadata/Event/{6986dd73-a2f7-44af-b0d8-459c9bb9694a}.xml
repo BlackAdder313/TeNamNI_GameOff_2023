@@ -142,9 +142,6 @@
 		</relationship>
 	</object>
 	<object class="GroupTrack" id="{d01e3b61-374b-4038-9382-1657a94717cc}">
-		<relationship name="automationTracks">
-			<destination>{2180e9ca-013b-4ebc-89cb-0661de80443b}</destination>
-		</relationship>
 		<relationship name="modules">
 			<destination>{7955b988-d7ab-4f25-a8d1-d8b91707d7d4}</destination>
 			<destination>{922a5e3a-55d3-4317-8854-ff83af34c324}</destination>
@@ -490,11 +487,6 @@
 		</relationship>
 		<relationship name="output">
 			<destination>{0f52c9a9-1b52-423a-b4a5-c0cbbe22acdc}</destination>
-		</relationship>
-	</object>
-	<object class="AutomationTrack" id="{2180e9ca-013b-4ebc-89cb-0661de80443b}">
-		<relationship name="automator">
-			<destination>{f1e090b2-c0e6-4069-94fa-bcf027eb20f2}</destination>
 		</relationship>
 	</object>
 	<object class="SingleSound" id="{7955b988-d7ab-4f25-a8d1-d8b91707d7d4}">
@@ -1222,6 +1214,9 @@
 		</property>
 		<property name="value">
 			<value>-80</value>
+		</property>
+		<property name="curveShape">
+			<value>-0.446385235</value>
 		</property>
 	</object>
 	<object class="AutomationPoint" id="{a389ee54-49d3-425e-8ed8-69788ff7dd1e}">

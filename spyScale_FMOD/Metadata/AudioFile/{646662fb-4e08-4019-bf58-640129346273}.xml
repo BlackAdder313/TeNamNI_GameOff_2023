@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{646662fb-4e08-4019-bf58-640129346273}">
+		<property name="assetPath">
+			<value>SFX_Lasersustain_1.wav</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>9.0144217687074821</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2741e13b-fc55-41d9-8835-134a2244a42f}</destination>
+		</relationship>
+	</object>
+</objects>
