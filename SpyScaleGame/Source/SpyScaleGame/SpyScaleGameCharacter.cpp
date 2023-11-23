@@ -121,7 +121,7 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 {
-	if (ASSGButton* Button = TraceOutuput.Button.Get())
+	if (ASSGButton* Button = TraceOutput.Button.Get())
 	{
 		Button->PressButton();
 	}
@@ -134,7 +134,7 @@ void ASpyScaleGameCharacter::ToggleWatch(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::ScaleHeldObject(const FInputActionValue& Value)
 {
-	if (ASSGInteractable* Interactable = TraceOutuput.Interactable.Get())
+	if (ASSGInteractable* Interactable = TraceOutput.Interactable.Get())
 	{
 		const float ScaleDirection = Value.Get<FVector>().X;
 		Interactable->AdjustScale(ScaleDirection);
@@ -180,20 +180,36 @@ void ASpyScaleGameCharacter::AdjustHeldObject(const FInputActionValue& Value)
 
 void ASpyScaleGameCharacter::InteractionTraceUpdate(float DeltaTime)
 {
-	TraceOutuput = FInteractionTraceOutput();
+	TraceOutput = FInteractionTraceOutput();
 	
 	const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
 	const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
 
 	FCollisionQueryParams TraceParams(TEXT("InteractionTrace"), true);
 	
-	GetWorld()->LineTraceSingleByChannel(TraceOutuput.HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams);
-	TraceOutuput.Interactable = Cast<ASSGInteractable>(TraceOutuput.HitResult.GetActor());
-	TraceOutuput.Button = Cast<ASSGButton>(TraceOutuput.HitResult.GetActor());
+	GetWorld()->LineTraceSingleByChannel(TraceOutput.HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams);
+	TraceOutput.Interactable = Cast<ASSGInteractable>(TraceOutput.HitResult.GetActor());
+	TraceOutput.Button = Cast<ASSGButton>(TraceOutput.HitResult.GetActor());
+
+	LaserHitResult = TraceOutput.HitResult;
+
+	if (LaserHitResult.bBlockingHit)
+	{
+		LaserEndPointLocation = LaserHitResult.ImpactPoint;
+	}
+	else
+	{
+		LaserEndPointLocation = TraceEnd;
+	}
 }
 
 void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 {
+	const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
+	const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
+
+	WatchEndPointLocation = TraceEnd;
+
 	if (!bIsWatchActive)
 	{
 		PhysicsHandleComponent->ReleaseComponent();
@@ -203,7 +219,7 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 
 	if (!HeldObject.IsValid())
 	{
-		HeldObject = TraceOutuput.Interactable;
+		HeldObject = TraceOutput.Interactable;
 		CurrentHoldingDistance = (MaxHoldingDistance + MinHoldingDistance) * .5f;
 		if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 		{
@@ -216,10 +232,8 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		}
 	}
 
-	if (const ASSGInteractable* HeldObjectPtr = HeldObject.Get())
+	if (ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 	{
-		const FVector Start = FirstPersonCameraComponent->GetComponentLocation();
-
 		FVector Origin;
 		FVector BoxExtent;
 		HeldObjectPtr->GetActorBounds(true, Origin, BoxExtent);
@@ -229,15 +243,15 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 		TraceParams.AddIgnoredActor(this);
 
 		FHitResult HitResult;
-		const FVector TraceStart = FirstPersonCameraComponent->GetComponentLocation();
-		const FVector TraceEnd = TraceStart + MaxHoldingDistance * FirstPersonCameraComponent->GetForwardVector();
 		GetWorld()->LineTraceSingleByChannel(HitResult, TraceStart, TraceEnd, ECC_WorldStatic, TraceParams);
 
 		const float HeldDistance = FMath::Min(BoxExtent.GetMax() + CurrentHoldingDistance, HitResult.bBlockingHit ? HitResult.Distance : FLT_MAX);
-		const FVector RequestedTargetLocation = Start + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
+		const FVector RequestedTargetLocation = TraceStart + HeldDistance * FirstPersonCameraComponent->GetForwardVector();
 		const FVector TargetLocation = FMath::VInterpTo(HeldObjectPtr->GetActorLocation(), RequestedTargetLocation, DeltaTime, HoldInterpolationSpeed);
 
 		PhysicsHandleComponent->SetTargetLocation(TargetLocation);
+
+		WatchEndPointLocation = HeldObjectPtr->GetActorLocation();
 	}
 }
 

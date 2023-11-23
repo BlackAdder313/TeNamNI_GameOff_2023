@@ -146,6 +146,15 @@ protected:
 	UPROPERTY(BlueprintReadOnly)
 	EObjectAdjustmentMode AdjustmentMode = EObjectAdjustmentMode::Position;
 
+	UPROPERTY(BlueprintReadOnly)
+	FVector WatchEndPointLocation;
+
+	UPROPERTY(BlueprintReadOnly)
+	FVector LaserEndPointLocation;
+
+	UPROPERTY(BlueprintReadOnly)
+	FHitResult LaserHitResult;
+
 	/* Physics Handle */
 	class UPhysicsHandleComponent* PhysicsHandleComponent = nullptr;
 
@@ -158,7 +167,7 @@ protected:
 		TWeakObjectPtr<ASSGButton> Button;
 	};
 
-	FInteractionTraceOutput TraceOutuput;
+	FInteractionTraceOutput TraceOutput;
 	TWeakObjectPtr<ASSGInteractable> HeldObject;
 	float CurrentHoldingDistance = 0.f;
 };
