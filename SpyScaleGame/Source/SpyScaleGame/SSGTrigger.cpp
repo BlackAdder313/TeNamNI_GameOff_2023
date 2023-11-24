@@ -68,6 +68,21 @@ void ASSGTrigger::Tick(float DeltaTime)
 	}
 }
 
+float ASSGTrigger::GetCompletePercentage() const
+{
+	if (ActiveInteractables.IsEmpty())
+	{
+		return 0.f;
+	}
+
+	if (TriggerMassThreshold <= 0.f)
+	{
+		return 1.f;
+	}
+
+	return FMath::Min(CurrentMass / TriggerMassThreshold, 1.f);
+}
+
 void ASSGTrigger::BP_TriggerOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
 	if (const ASSGInteractable* Interactable = Cast<ASSGInteractable>(OtherActor))

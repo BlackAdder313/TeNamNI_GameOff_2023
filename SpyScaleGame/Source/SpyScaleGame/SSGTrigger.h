@@ -29,7 +29,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 
 	UFUNCTION(BlueprintCallable)
-	bool IsComplete() const { return ActiveInteractables.Num() && TriggerMassThreshold <= CurrentMass; }
+	bool IsComplete() const { return !ActiveInteractables.IsEmpty() && TriggerMassThreshold <= CurrentMass; }
+
+	UFUNCTION(BlueprintCallable)
+	float GetCompletePercentage() const;
 
 protected:
 	// How much mass it requires to complete the object when it enters the trigger
