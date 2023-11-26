@@ -46,6 +46,12 @@ public:
 	/** Returns FirstPersonCameraComponent subobject **/
 	UCameraComponent* GetFirstPersonCameraComponent() const { return FirstPersonCameraComponent; }
 
+	UFUNCTION(BlueprintCallable, Category = "Gameplay|Interact")
+	void RegisterButton(ASSGButton* button, FVector buttonLocation);
+
+	UFUNCTION(BlueprintCallable, Category = "Gameplay|Interact")
+	void ClearButton();
+
 protected:
 	virtual void BeginPlay() override;
 
@@ -54,10 +60,6 @@ protected:
 	// Called when player is trying to interact with this object
 	UFUNCTION(BlueprintImplementableEvent, Category = "Actor BP Extensions")
 	void Tick_BP(float DeltaTime);
-
-	// Called when player starts holding an object
-	UFUNCTION(BlueprintImplementableEvent, Category = "Actor BP Extensions")
-	void OnObjectHold_BP();
 	
 	/** Called for movement input */
 	void Move(const FInputActionValue& Value);
@@ -112,7 +114,6 @@ protected:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* ToggleWatchAction = nullptr;
 
-	// todo: current not being used? do we need this?
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = Input, meta = (AllowPrivateAccess = "true"))
 	UInputAction* MoveHeldObjectAction = nullptr;
 
@@ -164,10 +165,25 @@ protected:
 	{
 		FHitResult HitResult;
 		TWeakObjectPtr<ASSGInteractable> Interactable;
+	};
+
+	struct FButtonAttributes
+	{
+		FVector ButtonMeshWorldLocation;
 		TWeakObjectPtr<ASSGButton> Button;
+
+		void Reset()
+		{
+			ButtonMeshWorldLocation = FVector::ZeroVector;
+			Button.Reset();
+		}
 	};
 
 	FInteractionTraceOutput TraceOutput;
+	FButtonAttributes ButtonAttributes;
 	TWeakObjectPtr<ASSGInteractable> HeldObject;
 	float CurrentHoldingDistance = 0.f;
+
+private:
+	bool IsInFrustum(AActor* Actor);
 };

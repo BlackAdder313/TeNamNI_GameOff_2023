@@ -10,6 +10,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "Kismet/GameplayStatics.h"
 #include "Logging/LogMacros.h"
 #include "PhysicsEngine/PhysicsHandleComponent.h"
 #include "SSGButton.h"
@@ -119,11 +120,61 @@ void ASpyScaleGameCharacter::Look(const FInputActionValue& Value)
 	}
 }
 
+void ASpyScaleGameCharacter::RegisterButton(ASSGButton* button, FVector buttonLocation)
+{
+	ButtonAttributes.Button = MakeWeakObjectPtr<ASSGButton>(button);
+	ButtonAttributes.ButtonMeshWorldLocation = buttonLocation;
+}
+
+void ASpyScaleGameCharacter::ClearButton()
+{
+	ButtonAttributes.Reset();
+}
+
+bool ASpyScaleGameCharacter::IsInFrustum(AActor* Actor)
+{
+	ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
+	if (LocalPlayer != nullptr && LocalPlayer->ViewportClient != nullptr && LocalPlayer->ViewportClient->Viewport)
+	{
+		FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(
+										   LocalPlayer->ViewportClient->Viewport,
+										   GetWorld()->Scene,
+										   LocalPlayer->ViewportClient->EngineShowFlags).SetRealtimeUpdate(true));
+
+		FVector ViewLocation;
+		FRotator ViewRotation;
+		FSceneView* SceneView = LocalPlayer->CalcSceneView(&ViewFamily, ViewLocation, ViewRotation, LocalPlayer->ViewportClient->Viewport);
+		if (SceneView != nullptr)
+		{
+			return SceneView->ViewFrustum.IntersectSphere(
+				Actor->GetActorLocation(), Actor->GetSimpleCollisionRadius());
+		}
+	}
+
+	return false;
+}
+
 void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 {
-	if (ASSGButton* Button = TraceOutput.Button.Get())
+	if (!ButtonAttributes.Button.IsValid())
 	{
-		Button->PressButton();
+		return;
+	}
+	
+	FVector2D screenPosition;
+	const auto playerController = GetController<const APlayerController>();
+	UGameplayStatics::ProjectWorldToScreen(playerController,
+										   ButtonAttributes.ButtonMeshWorldLocation,
+										   screenPosition);
+	int32 sizeX = 0, sizeY = 0;
+	playerController->GetViewportSize(sizeX, sizeY);
+	bool isWithinScreen = FMath::IsWithin(screenPosition.X, sizeX * .1f, sizeX * .9f)
+						  && FMath::IsWithin(screenPosition.Y, sizeY * .1f, sizeY * .9f);
+
+	auto buttonPtr = ButtonAttributes.Button.Get();
+	if (isWithinScreen && playerController->LineOfSightTo(buttonPtr))
+	{
+		buttonPtr->PressButton();
 	}
 }
 
@@ -189,10 +240,8 @@ void ASpyScaleGameCharacter::InteractionTraceUpdate(float DeltaTime)
 	
 	GetWorld()->LineTraceSingleByChannel(TraceOutput.HitResult, TraceStart, TraceEnd, ECC_Visibility, TraceParams);
 	TraceOutput.Interactable = Cast<ASSGInteractable>(TraceOutput.HitResult.GetActor());
-	TraceOutput.Button = Cast<ASSGButton>(TraceOutput.HitResult.GetActor());
 
 	LaserHitResult = TraceOutput.HitResult;
-
 	if (LaserHitResult.bBlockingHit)
 	{
 		LaserEndPointLocation = LaserHitResult.ImpactPoint;
@@ -227,8 +276,6 @@ void ASpyScaleGameCharacter::WatchUpdate(float DeltaTime)
 				FName(),
 				HeldObject->GetActorLocation(),
 				HeldObject->GetActorRotation());
-
-			OnObjectHold_BP();
 		}
 	}
 
