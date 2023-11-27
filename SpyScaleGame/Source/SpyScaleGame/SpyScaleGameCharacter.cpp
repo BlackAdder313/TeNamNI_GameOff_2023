@@ -172,7 +172,7 @@ void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 						  && FMath::IsWithin(screenPosition.Y, sizeY * .1f, sizeY * .9f);
 
 	auto buttonPtr = ButtonAttributes.Button.Get();
-	if (isWithinScreen && playerController->LineOfSightTo(buttonPtr))
+	if (isWithinScreen /* && playerController->LineOfSightTo(buttonPtr)*/)
 	{
 		buttonPtr->PressButton();
 	}
