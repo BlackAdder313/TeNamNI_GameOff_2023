@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.02.00">
+	<object class="AudioFile" id="{c6cd7b3c-70b0-4c16-ae8a-65f7bbf23356}">
+		<property name="assetPath">
+			<value>static-noise-several-different-ones-59881.mp3</value>
+		</property>
+		<property name="isStreaming">
+			<value>true</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>24</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>147.40799999999999</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{2741e13b-fc55-41d9-8835-134a2244a42f}</destination>
+		</relationship>
+	</object>
+</objects>
