@@ -131,29 +131,6 @@ void ASpyScaleGameCharacter::ClearButton()
 	ButtonAttributes.Reset();
 }
 
-bool ASpyScaleGameCharacter::IsInFrustum(AActor* Actor)
-{
-	ULocalPlayer* LocalPlayer = GetWorld()->GetFirstLocalPlayerFromController();
-	if (LocalPlayer != nullptr && LocalPlayer->ViewportClient != nullptr && LocalPlayer->ViewportClient->Viewport)
-	{
-		FSceneViewFamilyContext ViewFamily(FSceneViewFamily::ConstructionValues(
-										   LocalPlayer->ViewportClient->Viewport,
-										   GetWorld()->Scene,
-										   LocalPlayer->ViewportClient->EngineShowFlags).SetRealtimeUpdate(true));
-
-		FVector ViewLocation;
-		FRotator ViewRotation;
-		FSceneView* SceneView = LocalPlayer->CalcSceneView(&ViewFamily, ViewLocation, ViewRotation, LocalPlayer->ViewportClient->Viewport);
-		if (SceneView != nullptr)
-		{
-			return SceneView->ViewFrustum.IntersectSphere(
-				Actor->GetActorLocation(), Actor->GetSimpleCollisionRadius());
-		}
-	}
-
-	return false;
-}
-
 void ASpyScaleGameCharacter::Interact(const FInputActionValue& Value)
 {
 	if (!ButtonAttributes.Button.IsValid())
@@ -201,7 +178,7 @@ void ASpyScaleGameCharacter::AdjustHeldObject(const FInputActionValue& Value)
 {
 	if (const ASSGInteractable* HeldObjectPtr = HeldObject.Get())
 	{
-		const float MoveDirection = Value.Get<FVector>().X;
+		const float MoveDirection = -Value.Get<FVector>().X;
 		const FQuat ObjectRotation = HeldObjectPtr->GetStaticMeshComponent()->GetComponentQuat();
 
 		switch (AdjustmentMode)

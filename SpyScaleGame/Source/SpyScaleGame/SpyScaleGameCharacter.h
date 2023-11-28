@@ -183,7 +183,4 @@ protected:
 	FButtonAttributes ButtonAttributes;
 	TWeakObjectPtr<ASSGInteractable> HeldObject;
 	float CurrentHoldingDistance = 0.f;
-
-private:
-	bool IsInFrustum(AActor* Actor);
 };
